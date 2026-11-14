@@ -1,10 +1,4 @@
-/*
-[rewrite_local]
-^https:\/\/www\.uhomecp\.com\/cms-api\/user\/submitToken url script-request-header https://你的链接/uhomecp_token.js
 
-[mitm]
-hostname = www.uhomecp.com
-*/
 
 const KEY = "uhomecp_token";
 const SHORTCUT = "保存Token"; // 快捷指令名称
