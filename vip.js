@@ -1,7 +1,5 @@
-
-
 const KEY = "uhomecp_token";
-const SHORTCUT = "保存Token"; // 快捷指令名称
+const FILE = "uhomecp_token.txt";
 const reg = /token|auth|session|sign|ticket/i;
 
 const h = $request.headers || {};
@@ -11,21 +9,26 @@ for (const k in h) {
 }
 
 if (Object.keys(found).length > 0) {
-  const lines = Object.keys(found).map((k) => k + ": " + found[k]);
-  const text = lines.join("\n");
+  const text = Object.keys(found).map((k) => k + ": " + found[k]).join("\n");
+  $prefs.setValueForKey(text, KEY); // 先存一份保底
 
-  $prefs.setValueForKey(text, KEY);
+  let ok = false;
+  try {
+    if (typeof $iCloud !== "undefined" && $iCloud.writeFile) {
+      ok = $iCloud.writeFile(text, FILE); // 写入即覆盖
+    }
+  } catch (e) {
+    console.log("写文件出错: " + e);
+  }
 
-  const url =
-    "shortcuts://run-shortcut?name=" + encodeURIComponent(SHORTCUT) +
-    "&input=text&text=" + encodeURIComponent(text);
-
-  $notify("uhomecp Token 获取成功", "点击保存为 txt(覆盖)", text, {
-    "open-url": url,
-  });
+  $notify(
+    ok ? "Token 已保存到 " + FILE : "Token 已获取,但文件写入失败",
+    ok ? "位置:iCloud 云盘/Quantumult X" : "当前版本可能不支持 $iCloud,已存入数据存储",
+    text
+  );
 } else {
-  console.log("未找到 token 头,全部请求头:\n" + JSON.stringify(h, null, 2));
-  $notify("uhomecp Token 获取失败", "", "请求头里没有匹配字段,请查看日志");
+  console.log("未找到 token 头:\n" + JSON.stringify(h, null, 2));
+  $notify("uhomecp Token 获取失败", "", "请求头里没有匹配字段");
 }
 
 $done({});
